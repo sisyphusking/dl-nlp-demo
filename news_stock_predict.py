@@ -11,6 +11,7 @@ nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
 from gensim.models.word2vec import Word2Vec
+import pickle
 
 
 '''
@@ -51,7 +52,20 @@ def clean_data(sen):
     return res
 
 
-def load_data(path='./data/Combined_News_DJIA.csv'):
+def pickle_data(obj, file):
+
+    with open(file, 'wb') as f:
+        pickle.dump(obj, f)
+
+
+def reload_pickle(file):
+
+    with open(file, 'rb')as f:
+        data = pickle.load(f)
+    return data
+
+
+def pre_data(path='./data/Combined_News_DJIA.csv'):
     data = pd.read_csv(path)
     train = data[data['Date'] < '2015-01-01']
     test = data[data['Date'] > '2014-12-31']
@@ -77,16 +91,20 @@ def load_data(path='./data/Combined_News_DJIA.csv'):
     X_train = [clean_data(x) for x in X_train]
     X_test = [clean_data(x) for x in X_test]
 
+    pickle_data(corpus, 'data/corpus.pkl')
+    pickle_data(X_train, 'data/x_train.pkl')
+    pickle_data(X_test, 'data/x_test.pkl')
+    pickle_data(y_train, 'data/y_train.pkl')
+    pickle_data(y_test, 'data/y_test.pkl')
+
     return corpus, X_train, y_train, X_test, y_test
 
 
+def train():
+    corpus = reload_pickle('data/corpus.pkl')
+    X_train = reload_pickle('data/x_train.pkl')
+    X_test = reload_pickle('data/x_test.pkl')
 
-
-
-def train(data):
-    corpus = data[0]
-    X_train = data[1]
-    X_test = data[3]
     # corpus: 训练集，可以是list
     # size: 输出的词向量的维度
     # window：表示当前词与预测词在一个句子中的最大距离是多少
@@ -94,7 +112,7 @@ def train(data):
     # workers: 并行处理数
     # 这里的vec是基于每个单词的
     model = Word2Vec(corpus, size=128, window=5, min_count=5, workers=8)
-    vocab = model.vocab
+    vocab = model.wv.vocab
     wordlist_train = X_train
     wordlist_test = X_test
 
@@ -112,11 +130,11 @@ def train(data):
     X_train = [get_vector(x) for x in X_train]
     X_test = [get_vector(x) for x in X_test]
 
-    return model
+    return X_train, X_test
 
 
 if __name__ == '__main__':
-    a = load_data()
-    print(len(a[0]))
-    b = train(a)
-    voc = b.vocabulary
+    # a = pre_data()
+
+    b = train()
+    print(b)
