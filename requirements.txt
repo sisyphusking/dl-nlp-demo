@@ -6,3 +6,6 @@ pandas
 sklearn
 jupyter
 gensim
+Cython
+fasttext
+

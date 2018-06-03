@@ -1,14 +1,14 @@
 from news_stock_predict import reload_pickle
 import numpy as np
 from sklearn import metrics
-# import fasttext  # 这个库只能在mac和linux上运行
+import fasttext  # 这个库只能在mac和linux上运行
 
 
 def save_data(data, file):
 
     with open(file, 'w')as f:
         for i in data:
-            if isinstance(i, int):
+            if not isinstance(i, str):
                 i = str(i)
             f.write(i+'\n')
 
@@ -38,13 +38,14 @@ def load_data():
 
 def train(data):
 
+    x_test = data[2]
     y_test = data[3]
     clf = fasttext.supervised('data/train_ft.txt', 'model', dim=256,
                               ws=5, neg=5, epoch=100, min_count=10, lr=0.1,
                               lr_update_rate=1000, bucket=200000)
 
     # 我们用predict来给出判断
-    labels = clf.predict(X_test)
+    labels = clf.predict(x_test)
 
     y_preds = np.array(labels).flatten().astype(int)
 
